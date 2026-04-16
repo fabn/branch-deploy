@@ -1177,3 +1177,363 @@ test('checks the comment body on a lock info request and uses the development en
     'found environment target for lock request: development'
   )
 })
+
+// --- Regex / dynamic environment target tests ---
+
+test('regex target matches a dynamic environment on .deploy', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.deploy dev-feature-1234',
+      trigger,
+      noop_trigger,
+      stable_branch
+    )
+  ).toStrictEqual({
+    environment: 'dev-feature-1234',
+    environmentUrl: null,
+    environmentObj: {
+      target: 'dev-feature-1234',
+      noop: false,
+      stable_branch_used: false,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+  expect(debugMock).toHaveBeenCalledWith(
+    'found environment target for branch deploy: dev-feature-1234'
+  )
+})
+
+test('regex target matches a dynamic environment on .deploy with "to"', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.deploy to dev-feature-1234',
+      trigger,
+      noop_trigger,
+      stable_branch
+    )
+  ).toStrictEqual({
+    environment: 'dev-feature-1234',
+    environmentUrl: null,
+    environmentObj: {
+      target: 'dev-feature-1234',
+      noop: false,
+      stable_branch_used: false,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+  expect(debugMock).toHaveBeenCalledWith(
+    "found environment target for branch deploy (with 'to'): dev-feature-1234"
+  )
+})
+
+test('regex target matches a dynamic environment on .noop', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.noop dev-feature-1234',
+      trigger,
+      noop_trigger,
+      stable_branch
+    )
+  ).toStrictEqual({
+    environment: 'dev-feature-1234',
+    environmentUrl: null,
+    environmentObj: {
+      target: 'dev-feature-1234',
+      noop: true,
+      stable_branch_used: false,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+  expect(debugMock).toHaveBeenCalledWith(
+    'found environment target for noop trigger: dev-feature-1234'
+  )
+})
+
+test('regex target matches a dynamic environment on .deploy main to <target>', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.deploy main to dev-feature-1234',
+      trigger,
+      noop_trigger,
+      stable_branch
+    )
+  ).toStrictEqual({
+    environment: 'dev-feature-1234',
+    environmentUrl: null,
+    environmentObj: {
+      target: 'dev-feature-1234',
+      noop: false,
+      stable_branch_used: true,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+  expect(debugMock).toHaveBeenCalledWith(
+    "found environment target for stable branch deploy (with 'to'): dev-feature-1234"
+  )
+})
+
+test('regex target matches a dynamic environment on .deploy main <target>', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.deploy main dev-feature-1234',
+      trigger,
+      noop_trigger,
+      stable_branch
+    )
+  ).toStrictEqual({
+    environment: 'dev-feature-1234',
+    environmentUrl: null,
+    environmentObj: {
+      target: 'dev-feature-1234',
+      noop: false,
+      stable_branch_used: true,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+  expect(debugMock).toHaveBeenCalledWith(
+    'found environment target for stable branch deploy: dev-feature-1234'
+  )
+})
+
+test('regex target matches a dynamic environment on .noop main to <target>', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.noop main to dev-feature-1234',
+      trigger,
+      noop_trigger,
+      stable_branch
+    )
+  ).toStrictEqual({
+    environment: 'dev-feature-1234',
+    environmentUrl: null,
+    environmentObj: {
+      target: 'dev-feature-1234',
+      noop: true,
+      stable_branch_used: true,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+  expect(debugMock).toHaveBeenCalledWith(
+    "found environment target for stable branch noop trigger (with 'to'): dev-feature-1234"
+  )
+})
+
+test('regex target matches a dynamic environment with params', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.deploy dev-feature-1234 | --flag=value',
+      trigger,
+      noop_trigger,
+      stable_branch
+    )
+  ).toStrictEqual({
+    environment: 'dev-feature-1234',
+    environmentUrl: null,
+    environmentObj: {
+      target: 'dev-feature-1234',
+      noop: false,
+      stable_branch_used: false,
+      params: '--flag=value',
+      parsed_params: {_: [], flag: 'value'},
+      sha: null
+    }
+  })
+})
+
+test('regex target matches on .lock with dynamic environment', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.lock dev-feature-1234',
+      '.lock',
+      '.unlock',
+      null,
+      null,
+      null,
+      null,
+      true
+    )
+  ).toStrictEqual({environment: 'dev-feature-1234', environmentUrl: null})
+  expect(debugMock).toHaveBeenCalledWith(
+    'found environment target for lock request: dev-feature-1234'
+  )
+})
+
+test('regex target matches on .unlock with dynamic environment', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.unlock dev-feature-1234',
+      '.lock',
+      '.unlock',
+      null,
+      null,
+      null,
+      null,
+      true
+    )
+  ).toStrictEqual({environment: 'dev-feature-1234', environmentUrl: null})
+  expect(debugMock).toHaveBeenCalledWith(
+    'found environment target for unlock request: dev-feature-1234'
+  )
+})
+
+test('exact targets still work when regex targets are configured', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.deploy staging',
+      trigger,
+      noop_trigger,
+      stable_branch
+    )
+  ).toStrictEqual({
+    environment: 'staging',
+    environmentUrl: null,
+    environmentObj: {
+      target: 'staging',
+      noop: false,
+      stable_branch_used: false,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+})
+
+test('regex target does not partial match (anchoring)', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'prod'
+  const mockContext = {
+    repo: {owner: 'test', repo: 'test'},
+    issue: {number: 1},
+    payload: {comment: {id: 1}}
+  }
+  const mockOctokit = {
+    rest: {
+      issues: {createComment: vi.fn()},
+      reactions: {
+        createForIssueComment: vi.fn(),
+        deleteForIssueComment: vi.fn()
+      }
+    }
+  }
+
+  expect(
+    await environmentTargets(
+      environment,
+      '.deploy production',
+      trigger,
+      noop_trigger,
+      stable_branch,
+      mockContext,
+      mockOctokit,
+      123
+    )
+  ).toStrictEqual({
+    environment: false,
+    environmentUrl: null,
+    environmentObj: {
+      target: false,
+      stable_branch_used: null,
+      noop: null,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+})
+
+test('invalid regex pattern falls back to exact match without crashing', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-[broken,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.deploy dev-[broken',
+      trigger,
+      noop_trigger,
+      stable_branch
+    )
+  ).toStrictEqual({
+    environment: 'dev-[broken',
+    environmentUrl: null,
+    environmentObj: {
+      target: 'dev-[broken',
+      noop: false,
+      stable_branch_used: false,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+})
+
+test('invalid regex pattern does not crash when no exact match exists', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-[broken,staging'
+  const mockContext = {
+    repo: {owner: 'test', repo: 'test'},
+    issue: {number: 1},
+    payload: {comment: {id: 1}}
+  }
+  const mockOctokit = {
+    rest: {
+      issues: {createComment: vi.fn()},
+      reactions: {
+        createForIssueComment: vi.fn(),
+        deleteForIssueComment: vi.fn()
+      }
+    }
+  }
+
+  expect(
+    await environmentTargets(
+      environment,
+      '.deploy dev-other',
+      trigger,
+      noop_trigger,
+      stable_branch,
+      mockContext,
+      mockOctokit,
+      123
+    )
+  ).toStrictEqual({
+    environment: false,
+    environmentUrl: null,
+    environmentObj: {
+      target: false,
+      stable_branch_used: null,
+      noop: null,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+})

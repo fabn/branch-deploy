@@ -18,7 +18,7 @@ inputs:
     required: false
     default: "production"
   environment_targets:
-    description: 'Optional (or additional) target environments to select for use with deployments. Example, "production,development,staging". Example  usage: `.deploy to development`, `.deploy to production`, `.deploy to staging`'
+    description: 'Optional (or additional) target environments to select for use with deployments. Supports regex patterns for dynamic environment names (e.g., "production,dev-.*,staging"). Example usage: `.deploy to development`, `.deploy to production`, `.deploy to staging`'
     required: false
     default: "production,development,staging"
   draft_permitted_targets:
