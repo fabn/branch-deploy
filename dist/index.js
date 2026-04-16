@@ -45581,6 +45581,69 @@ function parseParams(params) {
 
 
 
+// Sentinel symbol used in pattern tables to mark where the environment target goes
+const TARGET = Symbol('target')
+
+// Build the pattern table for deploy/noop commands
+// Patterns are ordered most-specific-first so the first match wins
+// :param trigger: The deploy trigger (e.g., ".deploy")
+// :param noop_trigger: The noop trigger (e.g., ".noop")
+// :param stable_branch: The stable branch name (e.g., "main")
+// :returns: Array of pattern descriptors
+function buildDeployPatterns(trigger, noop_trigger, stable_branch) {
+  return [
+    // Explicit target with "to" keyword
+    {tokens: [trigger, stable_branch, 'to', TARGET], stable_branch_used: true, noop: false},
+    {tokens: [noop_trigger, stable_branch, 'to', TARGET], stable_branch_used: true, noop: true},
+    {tokens: [trigger, 'to', TARGET], stable_branch_used: false, noop: false},
+    {tokens: [noop_trigger, 'to', TARGET], stable_branch_used: false, noop: true},
+    // Explicit target without "to"
+    {tokens: [trigger, stable_branch, TARGET], stable_branch_used: true, noop: false},
+    {tokens: [noop_trigger, stable_branch, TARGET], stable_branch_used: true, noop: true},
+    {tokens: [trigger, TARGET], stable_branch_used: false, noop: false},
+    {tokens: [noop_trigger, TARGET], stable_branch_used: false, noop: true},
+    // Naked commands (default environment)
+    {tokens: [trigger, stable_branch], stable_branch_used: true, noop: false, useDefault: true},
+    {tokens: [noop_trigger, stable_branch], stable_branch_used: true, noop: true, useDefault: true},
+    {tokens: [trigger], stable_branch_used: false, noop: false, useDefault: true},
+    {tokens: [noop_trigger], stable_branch_used: false, noop: true, useDefault: true},
+  ]
+}
+
+// Match a tokenized command body against a list of pattern descriptors
+// :param bodyTokens: The command body split into tokens
+// :param patterns: Array of pattern descriptors from buildDeployPatterns/buildLockPatterns
+// :param targets: Array of environment target patterns to match TARGET positions against
+// :returns: {pattern, resolvedTarget} if matched, null otherwise
+function matchCommand(bodyTokens, patterns, targets) {
+  for (const pattern of patterns) {
+    if (bodyTokens.length !== pattern.tokens.length) continue
+
+    let matched = true
+    let resolvedTarget = null
+
+    for (let i = 0; i < pattern.tokens.length; i++) {
+      if (pattern.tokens[i] === TARGET) {
+        // Try each environment target pattern (supports regex via targetMatch)
+        for (const t of targets) {
+          resolvedTarget = targetMatch(bodyTokens[i], t)
+          if (resolvedTarget) break
+        }
+        if (!resolvedTarget) {
+          matched = false
+          break
+        }
+      } else if (bodyTokens[i] !== pattern.tokens[i]) {
+        matched = false
+        break
+      }
+    }
+
+    if (matched) return {pattern, resolvedTarget}
+  }
+  return null
+}
+
 // Helper function to that does environment checks specific to branch deploys
 // :param environment_targets_sanitized: The list of environment targets
 // :param body: The body of the comment
@@ -45652,184 +45715,37 @@ async function onDeploymentChecks(
   if (match) {
     sha = match[1] // The captured SHA value
     // if a sha was used, then we need to remove it from the body for env checks
-    bodyFmt = bodyFmt.replace(new RegExp(`\\s*${sha}\\s*`, 'g'), '').trim()
+    bodyFmt = bodyFmt.replace(new RegExp(`\\s*${sha}\\s*`, 'g'), ' ').trim()
     info(
       `📍 detected SHA in command: ${COLORS.highlight}${sha}${COLORS.reset}`
     )
   } else if (noopMatch) {
     sha = noopMatch[1] // The captured SHA value
     // if a sha was used, then we need to remove it from the body for env checks
-    bodyFmt = bodyFmt.replace(new RegExp(`\\s*${sha}\\s*`, 'g'), '').trim()
+    bodyFmt = bodyFmt.replace(new RegExp(`\\s*${sha}\\s*`, 'g'), ' ').trim()
     info(
       `📍 detected SHA in noop command: ${COLORS.highlight}${sha}${COLORS.reset}`
     )
   }
 
-  // Loop through all the environment targets to see if an explicit target is being used
-  for (const target of environment_targets_sanitized) {
-    // If the body on a branch deploy contains the target
-    if (bodyFmt.replace(trigger, '').trim() === target) {
-      core_debug(`found environment target for branch deploy: ${target}`)
-      return {
-        target: target,
-        stable_branch_used: false,
-        noop: false,
-        params: paramsTrim,
-        parsed_params: parsed_params,
-        sha: sha
-      }
-    }
-    // If the body on a noop trigger contains the target
-    else if (bodyFmt.replace(noop_trigger, '').trim() === target) {
-      core_debug(`found environment target for noop trigger: ${target}`)
-      return {
-        target: target,
-        stable_branch_used: false,
-        noop: true,
-        params: paramsTrim,
-        parsed_params: parsed_params,
-        sha: sha
-      }
-    }
-    // If the body with 'to <target>' contains the target on a branch deploy
-    else if (bodyFmt.replace(trigger, '').trim() === `to ${target}`) {
-      core_debug(
-        `found environment target for branch deploy (with 'to'): ${target}`
-      )
-      return {
-        target: target,
-        stable_branch_used: false,
-        noop: false,
-        params: paramsTrim,
-        parsed_params: parsed_params,
-        sha: sha
-      }
-    }
-    // If the body with 'to <target>' contains the target on a noop trigger
-    else if (bodyFmt.replace(noop_trigger, '').trim() === `to ${target}`) {
-      core_debug(
-        `found environment target for noop trigger (with 'to'): ${target}`
-      )
-      return {
-        target: target,
-        stable_branch_used: false,
-        noop: true,
-        params: paramsTrim,
-        parsed_params: parsed_params,
-        sha: sha
-      }
-    }
-    // If the body with 'to <target>' contains the target on a stable branch deploy
-    else if (
-      bodyFmt.replace(`${trigger} ${stable_branch}`, '').trim() ===
-      `to ${target}`
-    ) {
-      core_debug(
-        `found environment target for stable branch deploy (with 'to'): ${target}`
-      )
-      return {
-        target: target,
-        stable_branch_used: true,
-        noop: false,
-        params: paramsTrim,
-        parsed_params: parsed_params,
-        sha: sha
-      }
-    }
-    // If the body with 'to <target>' contains the target on a stable branch noop trigger
-    else if (
-      bodyFmt.replace(`${noop_trigger} ${stable_branch}`, '').trim() ===
-      `to ${target}`
-    ) {
-      core_debug(
-        `found environment target for stable branch noop trigger (with 'to'): ${target}`
-      )
-      return {
-        target: target,
-        stable_branch_used: true,
-        noop: true,
-        params: paramsTrim,
-        parsed_params: parsed_params,
-        sha: sha
-      }
-    }
-    // If the body on a stable branch deploy contains the target
-    else if (
-      bodyFmt.replace(`${trigger} ${stable_branch}`, '').trim() === target
-    ) {
-      core_debug(`found environment target for stable branch deploy: ${target}`)
-      return {
-        target: target,
-        stable_branch_used: true,
-        noop: false,
-        params: paramsTrim,
-        parsed_params: parsed_params,
-        sha: sha
-      }
-    }
-    // If the body on a stable branch noop trigger contains the target
-    else if (
-      bodyFmt.replace(`${noop_trigger} ${stable_branch}`, '').trim() === target
-    ) {
-      core_debug(
-        `found environment target for stable branch noop trigger: ${target}`
-      )
-      return {
-        target: target,
-        stable_branch_used: true,
-        noop: true,
-        params: paramsTrim,
-        parsed_params: parsed_params,
-        sha: sha
-      }
-    }
-    // If the body matches the trigger phrase exactly, just use the default environment
-    else if (bodyFmt.trim() === trigger) {
-      core_debug('using default environment for branch deployment')
-      return {
-        target: environment,
-        stable_branch_used: false,
-        noop: false,
-        params: paramsTrim,
-        parsed_params: parsed_params,
-        sha: sha
-      }
-    }
-    // If the body matches the noop_trigger phrase exactly, just use the default environment
-    else if (bodyFmt.trim() === noop_trigger) {
-      core_debug('using default environment for noop trigger')
-      return {
-        target: environment,
-        stable_branch_used: false,
-        noop: true,
-        params: paramsTrim,
-        parsed_params: parsed_params,
-        sha: sha
-      }
-    }
-    // If the body matches the stable branch phrase exactly, just use the default environment
-    else if (bodyFmt.trim() === `${trigger} ${stable_branch}`) {
-      core_debug('using default environment for stable branch deployment')
-      return {
-        target: environment,
-        stable_branch_used: true,
-        noop: false,
-        params: paramsTrim,
-        parsed_params: parsed_params,
-        sha: sha
-      }
-    }
-    // If the body matches the stable branch phrase exactly on a noop trigger, just use the default environment
-    else if (bodyFmt.trim() === `${noop_trigger} ${stable_branch}`) {
-      core_debug('using default environment for stable branch noop trigger')
-      return {
-        target: environment,
-        stable_branch_used: true,
-        noop: true,
-        params: paramsTrim,
-        parsed_params: parsed_params,
-        sha: sha
-      }
+  // Tokenize the preprocessed command and match against the pattern table
+  const patterns = buildDeployPatterns(trigger, noop_trigger, stable_branch)
+  const tokens = bodyFmt.trim().split(/\s+/)
+  const result = matchCommand(tokens, patterns, environment_targets_sanitized)
+
+  if (result) {
+    const {pattern, resolvedTarget} = result
+    const target = pattern.useDefault ? environment : resolvedTarget
+    core_debug(
+      `matched deploy command: target=${target}, noop=${pattern.noop}, stable_branch_used=${pattern.stable_branch_used}`
+    )
+    return {
+      target,
+      stable_branch_used: pattern.stable_branch_used,
+      noop: pattern.noop,
+      params: paramsTrim,
+      parsed_params: parsed_params,
+      sha: sha
     }
   }
 
@@ -45842,6 +45758,24 @@ async function onDeploymentChecks(
     parsed_params: null,
     sha: null
   }
+}
+
+// Build the pattern table for lock/unlock commands
+// :param lock_trigger: The lock trigger (e.g., ".lock")
+// :param unlock_trigger: The unlock trigger (e.g., ".unlock")
+// :param lockInfoAlias: The lock info alias (e.g., ".wcid")
+// :returns: Array of pattern descriptors
+function buildLockPatterns(lock_trigger, unlock_trigger, lockInfoAlias) {
+  return [
+    // Explicit target
+    {tokens: [lock_trigger, TARGET], type: 'lock'},
+    {tokens: [unlock_trigger, TARGET], type: 'unlock'},
+    {tokens: [lockInfoAlias, TARGET], type: 'lock info'},
+    // Naked commands (default environment)
+    {tokens: [lock_trigger], useDefault: true},
+    {tokens: [unlock_trigger], useDefault: true},
+    {tokens: [lockInfoAlias], useDefault: true},
+  ]
 }
 
 // Helper function to that does environment checks specific to lock/unlock commands
@@ -45882,37 +45816,18 @@ async function onLockChecks(
   // Get the lock info alias from the action inputs
   const lockInfoAlias = getInput('lock_info_alias')
 
-  // if the body matches the lock trigger exactly, just use the default environment
-  if (body.trim() === lock_trigger.trim()) {
-    core_debug('using default environment for lock request')
-    return environment
-  }
+  // Tokenize the preprocessed command and match against the pattern table
+  const patterns = buildLockPatterns(lock_trigger, unlock_trigger, lockInfoAlias)
+  const tokens = body.trim().split(/\s+/)
+  const result = matchCommand(tokens, patterns, environment_targets_sanitized)
 
-  // if the body matches the unlock trigger exactly, just use the default environment
-  if (body.trim() === unlock_trigger.trim()) {
-    core_debug('using default environment for unlock request')
-    return environment
-  }
-
-  // if the body matches the lock info alias exactly, just use the default environment
-  if (body.trim() === lockInfoAlias.trim()) {
-    core_debug('using default environment for lock info request')
-    return environment
-  }
-
-  // Loop through all the environment targets to see if an explicit target is being used
-  for (const target of environment_targets_sanitized) {
-    // If the body on a branch deploy contains the target
-    if (body.replace(lock_trigger, '').trim() === target) {
-      core_debug(`found environment target for lock request: ${target}`)
-      return target
-    } else if (body.replace(unlock_trigger, '').trim() === target) {
-      core_debug(`found environment target for unlock request: ${target}`)
-      return target
-    } else if (body.replace(lockInfoAlias, '').trim() === target) {
-      core_debug(`found environment target for lock info request: ${target}`)
-      return target
-    }
+  if (result) {
+    const {pattern, resolvedTarget} = result
+    const target = pattern.useDefault ? environment : resolvedTarget
+    core_debug(
+      `matched lock command: type=${pattern.type || 'default'}, target=${target}`
+    )
+    return target
   }
 
   // If we get here, then no valid environment target was found
@@ -46095,6 +46010,24 @@ async function environmentTargets(
       environmentObj: environmentObj
     }
   }
+}
+
+// Helper function to match a value against an environment target pattern
+// Supports regex patterns in environment_targets (e.g., "dev-.*" matches "dev-feature-1234")
+// :param value: The value extracted from the comment body (what the user typed)
+// :param target: The target pattern to match against (from environment_targets input)
+// :returns: The matched value (string) if it matches, null otherwise
+function targetMatch(value, target) {
+  if (!target) return null
+  try {
+    if (new RegExp(`^${target}$`).test(value)) {
+      return value
+    }
+  } catch {
+    // Invalid regex pattern — fall back to exact string match
+    if (value === target) return value
+  }
+  return null
 }
 
 ;// CONCATENATED MODULE: ./src/functions/deployment.js
