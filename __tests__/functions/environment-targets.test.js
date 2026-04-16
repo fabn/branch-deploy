@@ -49,7 +49,7 @@ test('checks the comment body and does not find an explicit environment target',
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    'using default environment for branch deployment'
+    'matched deploy command: target=production, noop=false, stable_branch_used=false'
   )
 })
 
@@ -76,7 +76,7 @@ test('checks the comment body and finds an explicit environment target for devel
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for branch deploy: development'
+    'matched deploy command: target=development, noop=false, stable_branch_used=false'
   )
 })
 
@@ -103,7 +103,7 @@ test('checks the comment body and finds an explicit environment target for devel
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for branch deploy: development'
+    'matched deploy command: target=development, noop=false, stable_branch_used=false'
   )
   expect(infoMock).toHaveBeenCalledWith(
     `🧮 detected parameters in command: ${COLORS.highlight}something1 something2 something3`
@@ -137,7 +137,7 @@ test('checks the comment body and finds an explicit environment target and an ex
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for branch deploy: development'
+    'matched deploy command: target=development, noop=false, stable_branch_used=false'
   )
   expect(infoMock).toHaveBeenCalledWith(
     `🧮 detected parameters in command: ${COLORS.highlight}something1 something2 something3`
@@ -171,7 +171,7 @@ test('checks the comment body and finds an explicit environment target and an ex
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for noop trigger: development'
+    'matched deploy command: target=development, noop=true, stable_branch_used=false'
   )
   expect(infoMock).toHaveBeenCalledWith(
     `🧮 detected parameters in command: ${COLORS.highlight}something1 something2 something3`
@@ -214,7 +214,7 @@ test('checks the comment body and finds an explicit environment target and an ex
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for noop trigger: development'
+    'matched deploy command: target=development, noop=true, stable_branch_used=false'
   )
   expect(infoMock).toHaveBeenCalledWith(
     `🧮 detected parameters in command: ${COLORS.highlight}--cpu=2 --memory=4G --env=development --port=8080 --name=my-app -q my-queue`
@@ -248,7 +248,7 @@ test('checks the comment body and finds an explicit environment target and an ex
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for noop trigger: development'
+    'matched deploy command: target=development, noop=true, stable_branch_used=false'
   )
   expect(infoMock).toHaveBeenCalledWith(
     `🧮 detected parameters in command: ${COLORS.highlight}something1 something2 something3`
@@ -283,7 +283,7 @@ test('checks the comment body and finds an explicit environment target and an ex
 
   expect(debugMock).toHaveBeenCalledWith('no parameters detected in command')
   expect(debugMock).toHaveBeenCalledWith(
-    'using default environment for noop trigger'
+    'matched deploy command: target=production, noop=true, stable_branch_used=false'
   )
 })
 
@@ -316,7 +316,7 @@ test('checks the comment body and finds an explicit environment target for devel
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for stable branch deploy: development'
+    'matched deploy command: target=development, noop=false, stable_branch_used=true'
   )
   expect(infoMock).toHaveBeenCalledWith(
     `🧮 detected parameters in command: ${COLORS.highlight}something1 | something2 something3`
@@ -350,7 +350,7 @@ test('checks the comment body and finds an explicit environment target for stagi
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for noop trigger: staging'
+    'matched deploy command: target=staging, noop=true, stable_branch_used=false'
   )
 })
 
@@ -377,7 +377,7 @@ test('checks the comment body and finds an explicit environment target for stagi
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for stable branch noop trigger: staging'
+    'matched deploy command: target=staging, noop=true, stable_branch_used=true'
   )
 })
 
@@ -412,7 +412,7 @@ test('checks the comment body and finds an explicit environment target for stagi
     `🔗 environment url detected: ${COLORS.highlight}http://staging.example.com`
   )
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for noop trigger: staging'
+    'matched deploy command: target=staging, noop=true, stable_branch_used=false'
   )
   expect(saveStateMock).toHaveBeenCalledWith(
     'environment_url',
@@ -457,7 +457,7 @@ test('checks the comment body and finds an explicit environment target for stagi
     `🔗 environment url detected: ${COLORS.highlight}http://staging.example.com`
   )
   expect(debugMock).toHaveBeenCalledWith(
-    `found environment target for stable branch noop trigger (with 'to'): staging`
+    'matched deploy command: target=staging, noop=true, stable_branch_used=true'
   )
   expect(saveStateMock).toHaveBeenCalledWith(
     'environment_url',
@@ -508,7 +508,7 @@ test('checks the comment body and uses the default production environment target
     `🔗 environment url detected: ${COLORS.highlight}https://example.com`
   )
   expect(debugMock).toHaveBeenCalledWith(
-    'using default environment for branch deployment'
+    'matched deploy command: target=production, noop=false, stable_branch_used=false'
   )
   expect(saveStateMock).toHaveBeenCalledWith(
     'environment_url',
@@ -548,7 +548,7 @@ test('checks the comment body and finds an explicit environment target for a pro
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for branch deploy: production'
+    'matched deploy command: target=production, noop=false, stable_branch_used=false'
   )
   expect(warningMock).toHaveBeenCalledWith(
     "no valid environment URL found for environment: production - setting environment URL to 'null' - please check your 'environment_urls' input"
@@ -585,7 +585,7 @@ test('checks the comment body and finds an explicit environment target for a pro
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for branch deploy: production'
+    'matched deploy command: target=production, noop=false, stable_branch_used=false'
   )
   expect(warningMock).toHaveBeenCalledWith(
     'environment url does not match http(s) schema: example.com'
@@ -625,7 +625,7 @@ test('checks the comment body and finds an explicit environment target for a pro
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for branch deploy: production'
+    'matched deploy command: target=production, noop=false, stable_branch_used=false'
   )
   expect(infoMock).toHaveBeenCalledWith(
     `💡 environment url for ${COLORS.highlight}production${COLORS.reset} is explicitly disabled`
@@ -657,7 +657,7 @@ test('checks the comment body and finds an explicit environment target for stagi
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    "found environment target for noop trigger (with 'to'): staging"
+    'matched deploy command: target=staging, noop=true, stable_branch_used=false'
   )
 })
 
@@ -684,7 +684,7 @@ test('checks the comment body and finds a noop deploy to the stable branch and d
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    'using default environment for stable branch noop trigger'
+    'matched deploy command: target=production, noop=true, stable_branch_used=true'
   )
 })
 
@@ -711,7 +711,7 @@ test('checks the comment body and finds a noop deploy to the stable branch and d
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    'using default environment for stable branch noop trigger'
+    'matched deploy command: target=production, noop=true, stable_branch_used=true'
   )
 })
 
@@ -738,7 +738,7 @@ test('checks the comment body and finds an explicit environment target for produ
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    "found environment target for branch deploy (with 'to'): production"
+    'matched deploy command: target=production, noop=false, stable_branch_used=false'
   )
 })
 
@@ -765,7 +765,7 @@ test('checks the comment body on a noop deploy and does not find an explicit env
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    'using default environment for noop trigger'
+    'matched deploy command: target=production, noop=true, stable_branch_used=false'
   )
 })
 
@@ -842,7 +842,7 @@ test('checks the comment body on a stable branch deployment and finds a matching
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    "found environment target for stable branch deploy (with 'to'): production"
+    'matched deploy command: target=production, noop=false, stable_branch_used=true'
   )
 })
 
@@ -869,7 +869,7 @@ test('checks the comment body on a stable branch deployment and finds a matching
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for stable branch deploy: production'
+    'matched deploy command: target=production, noop=false, stable_branch_used=true'
   )
 })
 
@@ -896,7 +896,7 @@ test('checks the comment body on a stable branch deployment and uses the default
   })
 
   expect(debugMock).toHaveBeenCalledWith(
-    'using default environment for stable branch deployment'
+    'matched deploy command: target=production, noop=false, stable_branch_used=true'
   )
 })
 
@@ -965,7 +965,7 @@ test('checks the comment body on a lock request and uses the default environment
     )
   ).toStrictEqual({environment: 'production', environmentUrl: null})
   expect(debugMock).toHaveBeenCalledWith(
-    'using default environment for lock request'
+    'matched lock command: type=default, target=production'
   )
 })
 
@@ -984,7 +984,7 @@ test('checks the comment body on a lock request with a reason and uses the defau
     )
   ).toStrictEqual({environment: 'production', environmentUrl: null})
   expect(debugMock).toHaveBeenCalledWith(
-    'using default environment for lock request'
+    'matched lock command: type=default, target=production'
   )
 })
 
@@ -1003,7 +1003,7 @@ test('checks the comment body on a lock request with a reason and uses the expli
     )
   ).toStrictEqual({environment: 'production', environmentUrl: null})
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for lock request: production'
+    'matched lock command: type=lock, target=production'
   )
 })
 
@@ -1022,7 +1022,7 @@ test('checks the comment body on an unlock request and uses the default environm
     )
   ).toStrictEqual({environment: 'production', environmentUrl: null})
   expect(debugMock).toHaveBeenCalledWith(
-    'using default environment for unlock request'
+    'matched lock command: type=default, target=production'
   )
 })
 
@@ -1041,7 +1041,7 @@ test('checks the comment body on an unlock request and uses the default environm
     )
   ).toStrictEqual({environment: 'production', environmentUrl: null})
   expect(debugMock).toHaveBeenCalledWith(
-    'using default environment for unlock request'
+    'matched lock command: type=default, target=production'
   )
 })
 
@@ -1060,7 +1060,7 @@ test('checks the comment body on an unlock request and uses the development envi
     )
   ).toStrictEqual({environment: 'development', environmentUrl: null})
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for unlock request: development'
+    'matched lock command: type=unlock, target=development'
   )
 })
 
@@ -1079,7 +1079,7 @@ test('checks the comment body on a lock info alias request and uses the default 
     )
   ).toStrictEqual({environment: 'production', environmentUrl: null})
   expect(debugMock).toHaveBeenCalledWith(
-    'using default environment for lock info request'
+    'matched lock command: type=default, target=production'
   )
 })
 
@@ -1098,7 +1098,7 @@ test('checks the comment body on a lock request and uses the production environm
     )
   ).toStrictEqual({environment: 'production', environmentUrl: null})
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for lock request: production'
+    'matched lock command: type=lock, target=production'
   )
 })
 
@@ -1117,7 +1117,7 @@ test('checks the comment body on an unlock request and uses the development envi
     )
   ).toStrictEqual({environment: 'development', environmentUrl: null})
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for unlock request: development'
+    'matched lock command: type=unlock, target=development'
   )
 })
 
@@ -1136,7 +1136,7 @@ test('checks the comment body on a lock info alias request and uses the developm
     )
   ).toStrictEqual({environment: 'development', environmentUrl: null})
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for lock info request: development'
+    'matched lock command: type=lock info, target=development'
   )
 })
 
@@ -1155,7 +1155,7 @@ test('checks the comment body on a lock info request and uses the development en
     )
   ).toStrictEqual({environment: 'development', environmentUrl: null})
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for lock request: development'
+    'matched lock command: type=lock, target=development'
   )
 })
 
@@ -1174,6 +1174,366 @@ test('checks the comment body on a lock info request and uses the development en
     )
   ).toStrictEqual({environment: 'development', environmentUrl: null})
   expect(debugMock).toHaveBeenCalledWith(
-    'found environment target for lock request: development'
+    'matched lock command: type=lock, target=development'
   )
+})
+
+// --- Regex / dynamic environment target tests ---
+
+test('regex target matches a dynamic environment on .deploy', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.deploy dev-feature-1234',
+      trigger,
+      noop_trigger,
+      stable_branch
+    )
+  ).toStrictEqual({
+    environment: 'dev-feature-1234',
+    environmentUrl: null,
+    environmentObj: {
+      target: 'dev-feature-1234',
+      noop: false,
+      stable_branch_used: false,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+  expect(debugMock).toHaveBeenCalledWith(
+    'matched deploy command: target=dev-feature-1234, noop=false, stable_branch_used=false'
+  )
+})
+
+test('regex target matches a dynamic environment on .deploy with "to"', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.deploy to dev-feature-1234',
+      trigger,
+      noop_trigger,
+      stable_branch
+    )
+  ).toStrictEqual({
+    environment: 'dev-feature-1234',
+    environmentUrl: null,
+    environmentObj: {
+      target: 'dev-feature-1234',
+      noop: false,
+      stable_branch_used: false,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+  expect(debugMock).toHaveBeenCalledWith(
+    'matched deploy command: target=dev-feature-1234, noop=false, stable_branch_used=false'
+  )
+})
+
+test('regex target matches a dynamic environment on .noop', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.noop dev-feature-1234',
+      trigger,
+      noop_trigger,
+      stable_branch
+    )
+  ).toStrictEqual({
+    environment: 'dev-feature-1234',
+    environmentUrl: null,
+    environmentObj: {
+      target: 'dev-feature-1234',
+      noop: true,
+      stable_branch_used: false,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+  expect(debugMock).toHaveBeenCalledWith(
+    'matched deploy command: target=dev-feature-1234, noop=true, stable_branch_used=false'
+  )
+})
+
+test('regex target matches a dynamic environment on .deploy main to <target>', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.deploy main to dev-feature-1234',
+      trigger,
+      noop_trigger,
+      stable_branch
+    )
+  ).toStrictEqual({
+    environment: 'dev-feature-1234',
+    environmentUrl: null,
+    environmentObj: {
+      target: 'dev-feature-1234',
+      noop: false,
+      stable_branch_used: true,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+  expect(debugMock).toHaveBeenCalledWith(
+    'matched deploy command: target=dev-feature-1234, noop=false, stable_branch_used=true'
+  )
+})
+
+test('regex target matches a dynamic environment on .deploy main <target>', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.deploy main dev-feature-1234',
+      trigger,
+      noop_trigger,
+      stable_branch
+    )
+  ).toStrictEqual({
+    environment: 'dev-feature-1234',
+    environmentUrl: null,
+    environmentObj: {
+      target: 'dev-feature-1234',
+      noop: false,
+      stable_branch_used: true,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+  expect(debugMock).toHaveBeenCalledWith(
+    'matched deploy command: target=dev-feature-1234, noop=false, stable_branch_used=true'
+  )
+})
+
+test('regex target matches a dynamic environment on .noop main to <target>', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.noop main to dev-feature-1234',
+      trigger,
+      noop_trigger,
+      stable_branch
+    )
+  ).toStrictEqual({
+    environment: 'dev-feature-1234',
+    environmentUrl: null,
+    environmentObj: {
+      target: 'dev-feature-1234',
+      noop: true,
+      stable_branch_used: true,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+  expect(debugMock).toHaveBeenCalledWith(
+    'matched deploy command: target=dev-feature-1234, noop=true, stable_branch_used=true'
+  )
+})
+
+test('regex target matches a dynamic environment with params', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.deploy dev-feature-1234 | --flag=value',
+      trigger,
+      noop_trigger,
+      stable_branch
+    )
+  ).toStrictEqual({
+    environment: 'dev-feature-1234',
+    environmentUrl: null,
+    environmentObj: {
+      target: 'dev-feature-1234',
+      noop: false,
+      stable_branch_used: false,
+      params: '--flag=value',
+      parsed_params: {_: [], flag: 'value'},
+      sha: null
+    }
+  })
+})
+
+test('regex target matches on .lock with dynamic environment', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.lock dev-feature-1234',
+      '.lock',
+      '.unlock',
+      null,
+      null,
+      null,
+      null,
+      true
+    )
+  ).toStrictEqual({environment: 'dev-feature-1234', environmentUrl: null})
+  expect(debugMock).toHaveBeenCalledWith(
+    'matched lock command: type=lock, target=dev-feature-1234'
+  )
+})
+
+test('regex target matches on .unlock with dynamic environment', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.unlock dev-feature-1234',
+      '.lock',
+      '.unlock',
+      null,
+      null,
+      null,
+      null,
+      true
+    )
+  ).toStrictEqual({environment: 'dev-feature-1234', environmentUrl: null})
+  expect(debugMock).toHaveBeenCalledWith(
+    'matched lock command: type=unlock, target=dev-feature-1234'
+  )
+})
+
+test('exact targets still work when regex targets are configured', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-.*,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.deploy staging',
+      trigger,
+      noop_trigger,
+      stable_branch
+    )
+  ).toStrictEqual({
+    environment: 'staging',
+    environmentUrl: null,
+    environmentObj: {
+      target: 'staging',
+      noop: false,
+      stable_branch_used: false,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+})
+
+test('regex target does not partial match (anchoring)', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'prod'
+  const mockContext = {
+    repo: {owner: 'test', repo: 'test'},
+    issue: {number: 1},
+    payload: {comment: {id: 1}}
+  }
+  const mockOctokit = {
+    rest: {
+      issues: {createComment: vi.fn()},
+      reactions: {
+        createForIssueComment: vi.fn(),
+        deleteForIssueComment: vi.fn()
+      }
+    }
+  }
+
+  expect(
+    await environmentTargets(
+      environment,
+      '.deploy production',
+      trigger,
+      noop_trigger,
+      stable_branch,
+      mockContext,
+      mockOctokit,
+      123
+    )
+  ).toStrictEqual({
+    environment: false,
+    environmentUrl: null,
+    environmentObj: {
+      target: false,
+      stable_branch_used: null,
+      noop: null,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+})
+
+test('invalid regex pattern falls back to exact match without crashing', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-[broken,staging'
+  expect(
+    await environmentTargets(
+      environment,
+      '.deploy dev-[broken',
+      trigger,
+      noop_trigger,
+      stable_branch
+    )
+  ).toStrictEqual({
+    environment: 'dev-[broken',
+    environmentUrl: null,
+    environmentObj: {
+      target: 'dev-[broken',
+      noop: false,
+      stable_branch_used: false,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
+})
+
+test('invalid regex pattern does not crash when no exact match exists', async () => {
+  process.env.INPUT_ENVIRONMENT_TARGETS = 'production,dev-[broken,staging'
+  const mockContext = {
+    repo: {owner: 'test', repo: 'test'},
+    issue: {number: 1},
+    payload: {comment: {id: 1}}
+  }
+  const mockOctokit = {
+    rest: {
+      issues: {createComment: vi.fn()},
+      reactions: {
+        createForIssueComment: vi.fn(),
+        deleteForIssueComment: vi.fn()
+      }
+    }
+  }
+
+  expect(
+    await environmentTargets(
+      environment,
+      '.deploy dev-other',
+      trigger,
+      noop_trigger,
+      stable_branch,
+      mockContext,
+      mockOctokit,
+      123
+    )
+  ).toStrictEqual({
+    environment: false,
+    environmentUrl: null,
+    environmentObj: {
+      target: false,
+      stable_branch_used: null,
+      noop: null,
+      params: null,
+      parsed_params: null,
+      sha: null
+    }
+  })
 })
